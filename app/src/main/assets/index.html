@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Job Autopilot</title>
+<style>
+:root{--bg:#0b1220;--card:#111b2e;--muted:#8ea0b8;--text:#f8fafc;--accent:#22c55e;--warn:#f59e0b;--danger:#ef4444;--line:#22304a;--blue:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:780px;margin:auto;padding:16px 14px 88px}.top{display:flex;align-items:center;justify-content:space-between;margin:8px 2px 18px}.title{font-size:23px;font-weight:800}.sub{color:var(--muted);font-size:12px;margin-top:3px}.pill{font-size:11px;background:#12311f;color:#8ef0ad;border:1px solid #225f39;padding:7px 10px;border-radius:999px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:16px}.stat{padding:14px}.stat b{display:block;font-size:25px}.stat span{font-size:12px;color:var(--muted)}.card{padding:15px;margin-top:12px}.row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}.btn{width:100%;border:0;border-radius:12px;padding:13px 14px;font-weight:800;font-size:14px;cursor:pointer}.btn.primary{background:var(--accent);color:#052e16}.btn.secondary{background:#1f2c43;color:#e5edf8;border:1px solid #31425f}.btn.warn{background:#3a2a11;color:#ffd98a;border:1px solid #6c4e1f}.btn.small{width:auto;padding:9px 11px;font-size:12px}.label{font-size:12px;color:var(--muted);margin:12px 0 6px}.input{width:100%;background:#0d1628;border:1px solid #2b3b59;color:white;border-radius:11px;padding:12px;font-size:14px}.section{display:none}.section.active{display:block}.tabs{position:fixed;bottom:0;left:0;right:0;background:#0e1728eF;backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:20}.tab{padding:12px 4px 11px;text-align:center;color:var(--muted);font-size:11px}.tab.active{color:#a7f3d0;font-weight:800}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px}.dot.off{background:#64748b}.job{padding:12px 0;border-bottom:1px solid var(--line)}.job:last-child{border:0}.job h4{margin:0 0 4px;font-size:14px}.meta{color:var(--muted);font-size:12px}.badge{display:inline-block;font-size:10px;border-radius:999px;padding:4px 7px;background:#19253a;color:#b8c6dc;margin-right:4px}.action{border:1px solid #5c421c;background:#211b12;border-radius:14px;padding:13px;margin:10px 0}.action .q{font-weight:700;font-size:14px;margin-bottom:8px}.ok{color:#86efac}.bad{color:#fca5a5}.hint{font-size:12px;color:var(--muted);line-height:1.5}.divider{height:1px;background:var(--line);margin:14px 0}.switch{display:flex;align-items:center;gap:9px}.switch input{transform:scale(1.15)}.loading{opacity:.65;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><div class="title">Job Autopilot</div><div class="sub">Electrical + Logistics • Auto Submit ON</div></div><div class="pill" id="backendPill">Backend not connected</div></div>
+
+  <section id="home" class="section active">
+    <div class="grid">
+      <div class="stat"><b id="sJobs">0</b><span>Jobs found</span></div>
+      <div class="stat"><b id="sApplied">0</b><span>Applied</span></div>
+      <div class="stat"><b id="sActions">0</b><span>Action required</span></div>
+      <div class="stat"><b id="sReady">0</b><span>Ready / tailored</span></div>
+    </div>
+
+    <div class="card">
+      <div class="row between"><div><b>Automation</b><div class="hint">Unknown information wali job Action Required me jayegi aur queue next job par continue karegi.</div></div><span class="badge">AUTO</span></div>
+      <div style="height:12px"></div>
+      <button class="btn primary" onclick="startNow()">Start Auto Apply Now</button>
+      <div style="height:8px"></div>
+      <button class="btn secondary" onclick="refreshState()">Refresh Status</button>
+    </div>
+
+    <div class="card">
+      <div class="row between"><b>Naukri Login</b><span id="loginState" class="meta">Not captured</span></div>
+      <div class="hint" style="margin-top:7px">Login app ke andar Naukri page par hoga. OTP/CAPTCHA aap manually complete karenge.</div>
+      <div style="height:10px"></div>
+      <button class="btn secondary" onclick="Android.openNaukriLogin()">Open Naukri Login</button>
+      <div style="height:8px"></div>
+      <button class="btn secondary" onclick="syncLogin()">Send Saved Login to Backend</button>
+    </div>
+
+    <div class="card"><div class="row between"><b>Recent Jobs</b><span class="meta" id="updatedAt"></span></div><div id="jobsList"><div class="hint" style="margin-top:10px">Backend connect karne ke baad jobs yahan dikhengi.</div></div></div>
+  </section>
+
+  <section id="actions" class="section">
+    <div class="card"><b>Your Action Required</b><div class="hint" style="margin-top:6px">Sirf woh information yahan aayegi jo safely auto-fill nahi ho sakti.</div><div id="actionsList"></div></div>
+  </section>
+
+  <section id="profile" class="section">
+    <div class="card">
+      <b>Application Profile</b>
+      <div class="label">Target tracks</div><div><span class="badge">Electrical Engineering</span><span class="badge">Logistics / Supply Chain</span></div>
+      <div class="label">Electrical locations</div><div class="meta">All India</div>
+      <div class="label">Current CTC</div><div class="meta">Configure in your private backend</div>
+      <div class="label">Expected CTC</div><div class="meta">Configure in your private backend</div>
+      <div class="label">Notice period</div><div class="meta">Configure in your private backend</div>
+      <div class="label">Relocation</div><div class="meta">Confirm in your private backend</div>
+      <div class="divider"></div>
+      <div class="hint">App unknown skill, experience, salary, certification ya tool experience invent nahi karega. Missing mandatory answer Action Required me jayega.</div>
+    </div>
+  </section>
+
+  <section id="settings" class="section">
+    <div class="card">
+      <b>Cloud Backend</b>
+      <div class="hint" style="margin-top:6px">Phone band hone ke baad bhi automation continue karne ke liye hosted backend required hai.</div>
+      <div class="label">Backend URL</div><input id="backendUrl" class="input" placeholder="https://your-server.example.com" />
+      <div class="label">API key (optional)</div><input id="apiKey" class="input" type="password" placeholder="Private API key" />
+      <div style="height:10px"></div><button class="btn primary" onclick="saveSettings()">Save & Test Connection</button>
+      <div class="divider"></div>
+      <div class="switch"><input id="autoSubmit" type="checkbox" checked disabled><label for="autoSubmit">Auto Submit ON</label></div>
+      <div class="switch" style="margin-top:10px"><input id="skipMissing" type="checkbox" checked disabled><label for="skipMissing">Missing info → Action Required → Continue next job</label></div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="home" onclick="showTab('home',this)">Home</div>
+  <div class="tab" data-tab="actions" onclick="showTab('actions',this)">Action Required</div>
+  <div class="tab" data-tab="profile" onclick="showTab('profile',this)">Profile</div>
+  <div class="tab" data-tab="settings" onclick="showTab('settings',this)">Settings</div>
+</nav>
+<script>
+let state=null;
+const $=id=>document.getElementById(id);
+function showTab(id,el){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+function base(){return (Android.getPref('backend_url')||'').replace(/\/$/,'')}
+function headers(extra={}){let h={...extra};let k=Android.getPref('api_key')||'';if(k)h['Authorization']='Bearer '+k;return h}
+async function api(path,opt={}){let b=base();if(!b)throw new Error('Backend URL set nahi hai');opt.headers=headers(opt.headers||{});let r=await fetch(b+path,opt);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}
+function setPill(ok,text){$('backendPill').textContent=text;$('backendPill').style.background=ok?'#12311f':'#3a1f1f';$('backendPill').style.color=ok?'#8ef0ad':'#fecaca'}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+function render(s){state=s;let st=s.stats||{};$('sJobs').textContent=st.jobs||0;$('sApplied').textContent=st.applied||0;$('sActions').textContent=st.pending_actions||0;$('sReady').textContent=st.ready||0;$('updatedAt').textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+ let jobs=(s.jobs||[]).slice(0,12);$('jobsList').innerHTML=jobs.length?jobs.map(j=>`<div class="job"><h4>${escapeHtml(j.title)}</h4><div class="meta">${escapeHtml(j.company||'')} ${j.location?'• '+escapeHtml(j.location):''}</div><div style="margin-top:6px"><span class="badge">${escapeHtml(j.track||'')}</span><span class="badge">${Number(j.fit_score||0)}% match</span><span class="badge">${escapeHtml(j.status||'')}</span></div></div>`).join(''):'<div class="hint" style="margin-top:10px">No jobs yet.</div>';
+ let ac=s.actions||[];$('actionsList').innerHTML=ac.length?ac.map(a=>`<div class="action"><div class="meta">${escapeHtml(a.title||'Job')} ${a.company?'• '+escapeHtml(a.company):''}</div><div class="q">${escapeHtml(a.question)}</div><input class="input" id="ans_${Number(a.id)}" placeholder="Your answer" /><div style="height:8px"></div><button class="btn warn" onclick="answerAction(${Number(a.id)})">Save Answer & Continue</button></div>`).join(''):'<div class="hint" style="margin-top:12px">No pending actions.</div>';
+}
+async function refreshState(){try{let s=await api('/api/state');setPill(true,'Backend connected');render(s)}catch(e){setPill(false,'Backend not connected');Android.toast(e.message)}}
+async function startNow(){try{document.body.classList.add('loading');let fd=new FormData();fd.append('enabled','true');fd.append('dry_run','false');await api('/api/toggle',{method:'POST',body:fd});await api('/api/scan',{method:'POST'});await api('/api/process',{method:'POST'});await refreshState();Android.toast('Auto apply run complete.')}catch(e){Android.toast(e.message)}finally{document.body.classList.remove('loading')}}
+async function answerAction(id){let v=$('ans_'+id).value.trim();if(!v){Android.toast('Answer enter karo');return}try{let fd=new FormData();fd.append('answer',v);await api('/api/action/'+id,{method:'POST',body:fd});await refreshState();Android.toast('Answer saved. Job queue me wapas chali gayi.')}catch(e){Android.toast(e.message)}}
+async function syncLogin(){let c=Android.getNaukriCookies();if(!c){Android.toast('Pehle Naukri login karke Save Login dabao');return}try{await api('/api/session/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cookie_header:c})});Android.toast('Naukri login synced to backend');$('loginState').textContent='Synced'}catch(e){Android.toast(e.message)}}
+async function saveSettings(){let u=$('backendUrl').value.trim();let k=$('apiKey').value.trim();try{let parsed=new URL(u);if(parsed.protocol!=='https:'||parsed.username||parsed.password)throw new Error();}catch(e){Android.toast('Valid HTTPS backend URL enter karo');return}Android.setPref('backend_url',u);Android.setPref('api_key',k);await refreshState()}
+window.addEventListener('load',()=>{let u=Android.getPref('backend_url')||'';let k=Android.getPref('api_key')||'';$('backendUrl').value=u;$('apiKey').value=k;let c=Android.getNaukriCookies();$('loginState').textContent=c?'Login captured':'Not captured';if(u)refreshState();setInterval(()=>{if(base())refreshState()},60000)})
+</script>
+</body>
+</html>
