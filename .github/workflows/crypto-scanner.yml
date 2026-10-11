@@ -1,0 +1,56 @@
+name: Crypto Scanner (5m + Telegram)
+
+on:
+  schedule:
+    # 02, 07, 12, ... 57 UTC. GitHub schedule is best-effort, not exact.
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run live scan or test Telegram without scanning"
+        type: choice
+        options:
+          - scan
+          - test_telegram
+        default: scan
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crypto-scanner-5min
+  cancel-in-progress: false
+
+jobs:
+  scanner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      ACCOUNT_USDT: "86.31"
+      MAX_SYMBOLS: "150"
+      MAX_WORKERS: "12"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configuration
+        run: |
+          if [[ -z "$TELEGRAM_BOT_TOKEN" || -z "$TELEGRAM_CHAT_ID" ]]; then
+            echo "::notice::Add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Settings > Secrets and variables > Actions."
+          fi
+      - name: Scan Binance or test Telegram
+        if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        env:
+          SELECTED_MODE: ${{ github.event.inputs.mode }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$SELECTED_MODE" == "test_telegram" ]]; then
+            python crypto_scanner/scanner.py --test-telegram
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            python crypto_scanner/scanner.py --manual
+          else
+            python crypto_scanner/scanner.py
+          fi
