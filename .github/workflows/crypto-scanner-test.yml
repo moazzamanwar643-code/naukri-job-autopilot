@@ -1,0 +1,25 @@
+name: Test Crypto Scanner
+
+on:
+  push:
+    paths:
+      - "crypto_scanner/**"
+      - ".github/workflows/crypto-scanner*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile scanner
+        run: python -m py_compile crypto_scanner/scanner.py
+      - name: Check indicators and position sizing
+        run: python -m unittest discover -s crypto_scanner -p 'test_*.py' -v
