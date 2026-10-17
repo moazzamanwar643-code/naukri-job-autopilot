@@ -1,0 +1,30 @@
+name: Indeed Job Discovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * *'
+permissions:
+  contents: read
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r indeed_autopilot/requirements.txt
+      - name: Find reviewable jobs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python indeed_autopilot/runner.py
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: indeed-review-queue
+          path: indeed_autopilot/output/
+          retention-days: 14
